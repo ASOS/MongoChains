@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>MongoMigrator.Library</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="ChessieExtensions.fs" />
+    <Compile Include="Migrations.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Chessie" Version="0.6.0" />
+    <PackageReference Include="FSharp.Data" Version="3.0.0-beta3" />
+    <PackageReference Include="MongoDB.Driver" Version="2.6.0" />
+  </ItemGroup>
+
+</Project>

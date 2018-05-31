@@ -12,8 +12,8 @@ module Console =
   
     let scriptDir = """C:\temp\migrations\"""
     let scripts = getMigrationScripts <| scriptDir
-
-    let migrator = Migrator("mongodb://localhost:27017")
+    let client = MongoDB.Driver.MongoClient("mongodb://localhost:27017")
+    let migrator = Migrator(client)
   
     let result = 
       async {

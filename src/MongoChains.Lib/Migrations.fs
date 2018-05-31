@@ -12,6 +12,9 @@ module Migrations =
   | RunAllMigrations
   | Abort
 
+  type GrantEvalPermissionError =
+  | CouldNotGrantEvalPermission
+
   type MigrationError =
   | RunJavascriptError of BsonDocument
   | SetMigrationVersionError
@@ -44,8 +47,8 @@ module Migrations =
     |> Seq.skip 1
     |> Seq.takeWhile (fun (_, path) -> File.Exists path)
 
-  type Migrator(connectionString:string) =
-    let mongoClient = MongoClient(connectionString).WithWriteConcern(WriteConcern.Acknowledged)
+  type Migrator(mongoClient:IMongoClient) =
+    let mongoClient = mongoClient.WithWriteConcern(WriteConcern.Acknowledged)
     
     let mongoDb = mongoClient.GetDatabase("admin")
 
@@ -85,10 +88,24 @@ module Migrations =
       printfn "Seting current version to %d" n
       do! setCurrentVersion n
       return succeeded
-      }    
+      }
+
+    let grantEvalPermission () =
+      match mongoClient.Settings.Credential with
+      | null -> asyncTrial.Return ()
+      | credentials when not (System.String.IsNullOrWhiteSpace(credentials.Username)) ->
+        let grantEvalRole = JsonCommand<BsonDocument>(sprintf """{ grantRolesToUser: "%s", roles: [ { role: "__system", db: "admin"} ] }""" credentials.Username)
+        asyncTrial {
+        let! grantedPermissionResult = mongoClient.GetDatabase("admin").RunCommandAsync<BsonDocument>(grantEvalRole) |> Async.AwaitTask
+        let! result = if mongoSucceeded grantedPermissionResult then ok () else fail CouldNotGrantEvalPermission
+        return result
+        }
+      | _ -> asyncTrial.Return ()
 
     let applyMigrations (rootPath:string) (tokens:seq<string * string>) (bootstrapBehaviour:BootstrapBehaviour) : AsyncResult<unit,MigrationError> =
-      asyncTrial {
+      
+      asyncTrial {      
+
       let! currentVersion = getCurrentVersion ()
       
       do!
@@ -108,5 +125,6 @@ module Migrations =
       do! migrations      
       }
     
+    member __.GrantEvalPermiossion = grantEvalPermission
     member __.GetCurrentVersion = getCurrentVersion
     member __.ApplyMigrations rootPath migrations bootstrapBehaviour = applyMigrations rootPath migrations bootstrapBehaviour

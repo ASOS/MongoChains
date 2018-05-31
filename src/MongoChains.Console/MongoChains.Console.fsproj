@@ -18,7 +18,7 @@
     <Compile Include="Migrations.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MongoMigrator.Lib\MongoChains.Lib.fsproj" />
+    <ProjectReference Include="..\MongoChains.Lib\MongoChains.Lib.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

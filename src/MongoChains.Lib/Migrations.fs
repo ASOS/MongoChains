@@ -1,4 +1,4 @@
-﻿namespace MongoMigrator
+﻿namespace MongoChains
 
 module Migrations =
   open System.IO  

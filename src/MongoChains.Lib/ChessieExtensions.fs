@@ -1,4 +1,4 @@
-﻿namespace MongoMigrator
+﻿namespace MongoChains
 
 module AsyncTrial =
   open Chessie.ErrorHandling

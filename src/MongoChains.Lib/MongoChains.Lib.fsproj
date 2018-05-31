@@ -13,7 +13,7 @@
     <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>
     <PackageTags>mongodb</PackageTags>
     <Description>MongoChains is a migrations tool for MongoDB databases.</Description>
-    <PackageId>MongoMigrator</PackageId>
+    <PackageId>MongoChains</PackageId>
     <Product>MongoChains</Product>
   </PropertyGroup>
   <ItemGroup>

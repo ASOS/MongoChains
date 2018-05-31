@@ -1,10 +1,10 @@
-﻿namespace MongoMigrator
+﻿namespace MongoChains
 
 module Console =
 
   open System
   open System.IO
-  open MongoMigrator.Migrations
+  open MongoChains.Migrations
   open Chessie.ErrorHandling
 
   [<EntryPoint>]
@@ -22,8 +22,5 @@ module Console =
       } |> Async.RunSynchronously
 
     printfn "%A" result
-
-    //scripts |> Seq.iter (printfn "%s")
-
-    System.Console.ReadKey() |> ignore
+    
     0 // return an integer exit code

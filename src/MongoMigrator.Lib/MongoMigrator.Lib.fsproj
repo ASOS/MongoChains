@@ -12,6 +12,9 @@
     <Copyright>ASOS</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>
     <PackageTags>mongodb</PackageTags>
+    <Description>MongoMigrator is a migrations tool for MongoDB databases.</Description>
+    <PackageId>MongoMigrator</PackageId>
+    <Product>MongoMigrator</Product>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ChessieExtensions.fs" />

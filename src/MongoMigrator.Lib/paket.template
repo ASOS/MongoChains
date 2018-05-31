@@ -1,0 +1,7 @@
+type project
+id MongoMigrator
+version 0.1.0
+authors James Freiwirth
+description
+  Migrations tool for MongoDB databases
+licenseUrl https://opensource.org/licenses/Apache-2.0

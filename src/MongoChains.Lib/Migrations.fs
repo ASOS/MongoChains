@@ -12,13 +12,11 @@ module Migrations =
   | RunAllMigrations
   | Abort
 
-  type GrantEvalPermissionError =
-  | CouldNotGrantEvalPermission
-
   type MigrationError =
   | RunJavascriptError of BsonDocument
   | SetMigrationVersionError
   | CouldNotDetermineCurrentMigrationVersion
+  | CouldNotGrantEvalPermission
 
   type MigrationDocument =
     {

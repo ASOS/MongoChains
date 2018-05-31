@@ -12,12 +12,12 @@ let buildDir = "./build/"
 
 // *** Define Targets ***
 Target.create "Clean" (fun _ ->
-  Shell.CleanDir buildDir
+  Shell.cleanDir buildDir
 )
 
 Target.create "Build" (fun _ ->
   !! "src/MongoMigrator.sln"
-    |> MSBuild.runRelease (fun x -> { x with Targets = ["Build"]}) buildDir "Build"
+    |> MSBuild.runRelease (fun x -> { x with Targets = ["Clean; Restore; Build"]}) buildDir "Build"
     |> Trace.logItems "AppBuild-Output: "
 )
 

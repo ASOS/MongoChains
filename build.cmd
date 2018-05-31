@@ -1,1 +1,1 @@
-dotnet build -c Release src/MongoMigrator.sln
+dotnet build build.proj

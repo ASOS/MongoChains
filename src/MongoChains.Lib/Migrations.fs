@@ -125,6 +125,6 @@ module Migrations =
       do! migrations      
       }
     
-    member __.GrantEvalPermiossion = grantEvalPermission
+    member __.GrantEvalPermission = grantEvalPermission
     member __.GetCurrentVersion = getCurrentVersion
     member __.ApplyMigrations rootPath migrations bootstrapBehaviour = applyMigrations rootPath migrations bootstrapBehaviour

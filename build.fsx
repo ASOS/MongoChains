@@ -16,13 +16,13 @@ Target.create "Clean" (fun _ ->
 )
 
 Target.create "Build" (fun _ ->
-  !! "src/MongoMigrator.sln"
+  !! "src/MongoChains.sln"
     |> MSBuild.runRelease (fun x -> { x with Targets = ["Clean; Restore; Build"]}) buildDir "Build"
     |> Trace.logItems "AppBuild-Output: "
 )
 
 Target.create "Package" (fun _ ->
-  !! "src/MongoMigrator.sln"
+  !! "src/MongoChains.sln"
     |> MSBuild.runRelease (fun x -> { x with Targets = ["Pack"]}) buildDir "Build"
     |> Trace.logItems "AppBuild-Output: "
 )

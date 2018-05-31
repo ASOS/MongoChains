@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>MongoMigrator.Library</AssemblyName>
     <Version>0.1.0-alpha</Version>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
-    <Authors>James Freiwirth</Authors>
-    <Company>Perfect Shuffle Ltd</Company>
     <Copyright>ASOS</Copyright>
+    <Description>Console runner for MongoChains. MongoChains is a migrations tool for MongoDB databases.</Description>
+    <Authors>James Freiwirth</Authors>
+    <Product>MongoChains Console Runner</Product>
+    <Company>Perfect Shuffle Ltd</Company>
     <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>
     <PackageTags>mongodb</PackageTags>
-    <Description>MongoMigrator is a migrations tool for MongoDB databases.</Description>
-    <PackageId>MongoMigrator</PackageId>
-    <Product>MongoMigrator</Product>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ChessieExtensions.fs" />
     <Compile Include="Migrations.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MongoMigrator.Lib\MongoChains.Lib.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

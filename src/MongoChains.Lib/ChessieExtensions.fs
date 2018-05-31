@@ -1,6 +1,6 @@
 ﻿namespace MongoChains
 
-module AsyncTrial =
+module internal AsyncTrial =
   open Chessie.ErrorHandling
   
   let lift f = Async.ofAsyncResult >> Async.map f >> AR

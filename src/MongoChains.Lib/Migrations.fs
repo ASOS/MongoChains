@@ -80,7 +80,7 @@ module Migrations =
     let runMigration (n:int) (path:string) (tokens:seq<string * string>) =
       asyncTrial {
       printfn "Applying migration %4d: %s" n path
-      let js = File.ReadAllText(path)
+      let jsRaw = File.ReadAllText(path) |> replaceTokens tokens
       let! result = runMongoJavascript js
       let! succeeded = if mongoSucceeded result then ok () else fail (RunJavascriptError result)
       printfn "Seting current version to %d" n

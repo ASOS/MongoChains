@@ -1,0 +1,6 @@
+source https://api.nuget.org/v3/index.json
+
+nuget FSharp.Core
+nuget Chessie 0.6.0
+nuget FSharp.Data 3.0.0-beta3 prerelease
+nuget MongoDB.Driver 2.6.0

@@ -35,7 +35,7 @@ module Migrations =
     let replace = 
       tokens
       |> Seq.map (fun (k,v) -> sprintf "{#%s}" k, v)
-      |> Seq.map (fun (k,v) -> fun (str:string) -> str.Replace(k, v, System.StringComparison.InvariantCulture))
+      |> Seq.map (fun (k,v) -> fun (str:string) -> str.Replace(k, v))
       |> Seq.fold (>>) id
     
     replace javascript
@@ -80,7 +80,7 @@ module Migrations =
     let runMigration (n:int) (path:string) (tokens:seq<string * string>) =
       asyncTrial {
       printfn "Applying migration %4d: %s" n path
-      let! js = File.ReadAllTextAsync(path) |> Async.AwaitTask |> Async.map (replaceTokens tokens)      
+      let js = File.ReadAllText(path)
       let! result = runMongoJavascript js
       let! succeeded = if mongoSucceeded result then ok () else fail (RunJavascriptError result)
       printfn "Seting current version to %d" n

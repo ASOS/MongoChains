@@ -50,6 +50,7 @@ module Console =
       | MigrationError.CouldNotGrantEvalPermission -> "The credentials specified in the connection string do not have sufficient permission to run Eval."
       | MigrationError.RunJavascriptError err -> sprintf "An error occured running the migration: %s" (string err)
       | MigrationError.SetMigrationVersionError -> "An error occured trying to update the migration version record."
+      | MigrationError.TokenNotSpecified key -> sprintf "You did not specify a value for token: %s" key
     
     let printErrors errs = errs |> Seq.map printError |> Seq.iter (printfn "%s")
 

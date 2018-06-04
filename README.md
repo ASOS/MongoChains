@@ -48,6 +48,6 @@ Anything in the javascript files of the form ```{#Key}``` is treated as a case-s
 
     dotnet --target "mongodb://localhost:27017" --path "/path/to/migrations" --token foo=bar --token buzz=bazz
 
-By default, mongochains will check the current version of the database by looking at the migrations collection in the 'admin' DB, and will apply in sequence all migrations it finds that are above the current version. You can use the ```targetversion``` parameter to specify a particular version to migrate to. Mongochains migrations only go upwards, so this essentially just ignores migrations above the version you specify.
+By default, MongoChains will check the current version of the database by looking at the migrations collection in the ```admin``` DB, and will apply in sequence all migrations it finds that are above the current version. You can use the ```targetversion``` parameter to specify a particular version to migrate to. MongoChains migrations only go upwards, so this essentially just ignores migrations above the version you specify.
 
-Finally, there is a safemode argument that you can specify which causes mongochains to abort early if it cannot determine the current version of the database (that is, there is no record in the migrations collection). This is just an extra sanity check to provide reassurance in production environments.
+Finally, there is a ```safemode``` argument that you can specify which causes mongochains to abort early if it cannot determine the current version of the database (that is, there is no record in the migrations collection). This is just an extra sanity check to provide reassurance in production environments.

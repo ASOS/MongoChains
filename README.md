@@ -11,7 +11,7 @@ It can also be integrated easily with build tools such as FAKE, Octopus Deploy, 
 MongoChains.Console Usage
 -------------------------
 
-    USAGE: mongochains.console [--help] --target <connectionString> --path <path> [--targetversion <version>] [--token <key>=<value>] [--safemode]
+    USAGE: mongochains [--help] --target <connectionString> --path <path> [--targetversion <version>] [--token <key>=<value>] [--safemode]
 
     OPTIONS:
 
@@ -38,16 +38,20 @@ Migrations files are just javascript mongo scripts. You should put the migration
     └───3
             up.js
 
-The quickest way to get started is to grab the ```MongoChains.Console``` nuget package and then run it as follows:
+If you have .NET Core 2.1 installed, you can install mongochains as a global tool:
 
-    dotnet --target "mongodb://localhost:27017" --path "/path/to/migrations"
+    dotnet tool install --global MongoChains.Console
+
+Then run it as follows:
+
+    mongochains --target "mongodb://localhost:27017" --path "/path/to/migrations"
 
 Migrations may also contain tokens which get replaced before they are applied. This is useful when you have, for example, settings that vary between your development and production environments.
 
 Anything in the javascript files of the form ```{#Key}``` is treated as a case-sensitive token. Before attempting to apply a migration, mongochains will ensure that you have specified values for all the tokens in that file. e.g.
 
-    dotnet --target "mongodb://localhost:27017" --path "/path/to/migrations" --token foo=bar --token buzz=bazz
+    mongochains --target "mongodb://localhost:27017" --path "/path/to/migrations" --token foo=bar --token buzz=bazz
 
 By default, MongoChains will check the current version of the database by looking at the migrations collection in the ```admin``` DB, and will apply in sequence all migrations it finds that are above the current version. You can use the ```targetversion``` parameter to specify a particular version to migrate to. MongoChains migrations only go upwards, so this essentially just ignores migrations above the version you specify.
 
-Finally, there is a ```safemode``` argument that you can specify which causes mongochains to abort early if it cannot determine the current version of the database (that is, there is no record in the migrations collection). This is just an extra sanity check to provide reassurance in production environments.
+Finally, there is a ```safemode``` argument that you can specify which causes MongoChains to abort early if it cannot determine the current version of the database (that is, there is no record in the migrations collection). This is just an extra sanity check to provide reassurance in production environments.

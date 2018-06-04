@@ -7,31 +7,26 @@ open Fake.DotNet
 open Fake.Core
 
 // Properties
-let buildDir = "./build/"
-
+let outputDir = "./output/"
 
 // *** Define Targets ***
 Target.create "Clean" (fun _ ->
-  Shell.cleanDir buildDir
-)
-
-Target.create "Build" (fun _ ->
-  !! "src/MongoChains.sln"
-    |> MSBuild.runRelease (fun x -> { x with Targets = ["Clean; Restore; Build"]}) buildDir "Build"
-    |> Trace.logItems "AppBuild-Output: "
+  Shell.cleanDir outputDir
 )
 
 Target.create "Package" (fun _ ->
-  !! "src/MongoChains.sln"
-    |> MSBuild.runRelease (fun x -> { x with Targets = ["Pack"]}) buildDir "Build"
-    |> Trace.logItems "AppBuild-Output: "
+  
+  "src/MongoChains.sln"
+  |> DotNet.build (fun opts -> {opts with Configuration = DotNet.BuildConfiguration.Release})
+
+  "src/MongoChains.sln"    
+  |> DotNet.pack (fun opts -> {opts with OutputPath = Some outputDir})
 )
 
 open Fake.Core.TargetOperators
 
 // *** Define Dependencies ***
 "Clean"
-  ==> "Build"
   ==> "Package"
 
 // *** Start Build ***

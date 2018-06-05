@@ -8,6 +8,9 @@ module Migrations =
   open Chessie.ErrorHandling
   open FSharp.Data
 
+  type ILogger =
+    abstract member Log : string -> unit
+
   type BootstrapBehaviour =
   | RunAllMigrations
   | Abort
@@ -18,7 +21,17 @@ module Migrations =
   | CouldNotDetermineCurrentMigrationVersion
   | CouldNotGrantEvalPermission
   | TokenNotSpecified of key:string
-
+  | WhitespaceUsername
+    with
+      member this.FriendlyError =
+        match this with
+        | CouldNotDetermineCurrentMigrationVersion -> "Could not determine the current migration version as the migration record does not exist in the admin database. Run without safemode to force migrations to run."
+        | CouldNotGrantEvalPermission -> "The credentials specified in the connection string do not have sufficient permission to run Eval."
+        | RunJavascriptError err -> sprintf "An error occured running the migration: %s" (string err)
+        | SetMigrationVersionError -> "An error occured trying to update the migration version record."
+        | TokenNotSpecified key -> sprintf "You did not specify a value for token: %s" key
+        | WhitespaceUsername -> "MongoDB username cannot consist purely of whitespace"
+    
   type MigrationDocument =
     {
       [<BsonId>]
@@ -54,14 +67,14 @@ module Migrations =
     |> Seq.skip 1
     |> Seq.takeWhile (fun (_, path) -> File.Exists path)
 
-  type Migrator(mongoClient:IMongoClient) =
+  type Migrator(mongoClient:IMongoClient, logger:ILogger) =
     let mongoClient = mongoClient.WithWriteConcern(WriteConcern.Acknowledged)
     
     let mongoDb = mongoClient.GetDatabase("admin")
 
     let mongoSucceeded (response:BsonDocument) =
       match response.TryGetValue "ok" with
-      | true, x -> x.IsDouble && x.AsDouble = 1.0
+      | true, x when x.IsDouble && x.AsDouble = 1.0 -> true
       | _ -> false
 
     let runMongoJavascript (js:string) =
@@ -88,26 +101,30 @@ module Migrations =
     
     let runMigration (n:int) (path:string) (tokens:seq<string * string>) =
       asyncTrial {
-      printfn "Applying migration %4d: %s" n path
+      logger.Log <| sprintf "Applying migration %-4d: %s... " n path
       let! js = File.ReadAllText(path) |> replaceTokens tokens
       let! result = runMongoJavascript js
       let! succeeded = if mongoSucceeded result then ok () else fail (RunJavascriptError result)
-      printfn "Setting current version to %d" n
+      logger.Log <| "[OK]\n"
+      logger.Log <| sprintf "Setting current migration version to %d... " n
       do! setCurrentVersion n
+      logger.Log <| "[OK]\n"
       return succeeded
       }
 
     let grantEvalPermission () =
       match mongoClient.Settings.Credential with
-      | null -> asyncTrial.Return ()
+      | null -> logger.Log "Using anonymous mongo connection\n"; asyncTrial.Return ()
       | credentials when not (System.String.IsNullOrWhiteSpace(credentials.Username)) ->
+        logger.Log <| "Using authenticated mongo connection. Attempting to grant eval role to user... "
         let grantEvalRole = JsonCommand<BsonDocument>(sprintf """{ grantRolesToUser: "%s", roles: [ { role: "__system", db: "admin"} ] }""" credentials.Username)
         asyncTrial {
         let! grantedPermissionResult = mongoClient.GetDatabase("admin").RunCommandAsync<BsonDocument>(grantEvalRole) |> Async.AwaitTask
         let! result = if mongoSucceeded grantedPermissionResult then ok () else fail CouldNotGrantEvalPermission
+        logger.Log <| "[OK]\n"
         return result
         }
-      | _ -> asyncTrial.Return ()
+      | _ -> AsyncTrial.fail WhitespaceUsername
 
     let applyMigrations (rootPath:string) (tokens:seq<string * string>) (bootstrapBehaviour:BootstrapBehaviour) (targetVersion:Option<int>) : AsyncResult<unit,MigrationError> =
       
@@ -120,19 +137,46 @@ module Migrations =
           then fail CouldNotDetermineCurrentMigrationVersion
           else ok ()
       
-      printfn "MongoDB Current Version: %d" currentVersion
+      logger.Log <| sprintf "MongoDB is currently at migration version: %d\n" currentVersion
       
       let migrations =
         getMigrationScripts rootPath
+        |> Seq.toArray
+
+      do
+        match migrations with
+        | [||] -> logger.Log <| sprintf "No migrations found in %s\n" rootPath
+        | migrations ->
+          logger.Log <| sprintf "Found the following following migrations:\n"
+          migrations |> Seq.iter (fun (n,path) ->
+            logger.Log <| sprintf "%-4d: %s\n" n path
+            )
+
+      let migrationsToApply =
+        migrations
         |> Seq.filter (fun (n,_) -> match targetVersion with Some targetVersion -> n <= targetVersion | None -> true)
         |> Seq.filter (fun (n,_) -> n > currentVersion)
-        |> Seq.map (fun (n,path) -> runMigration n path tokens)
+        |> Seq.toArray
+
+      do
+        match migrationsToApply with
+        | [||] -> logger.Log "Database is already at latest version. No migrations will be applied.\n"
+        | [|(n,_)|] -> logger.Log <| sprintf "Will attempt to apply migration %d\n" n
+        | xs ->
+          let (first,_) = Array.head xs
+          let (last, _) = Array.last xs
+          logger.Log <| sprintf "Will attempt to apply migrations %d through %d\n" first last
+      
+      let applyMigrations =
+        seq {
+          if migrationsToApply.Length > 0 then yield grantEvalPermission ()
+          yield! (migrationsToApply |> Seq.map (fun (n,path) -> runMigration n path tokens))
+        }
         |> AsyncTrial.sequence
         |> AsyncTrial.ignore
-            
-      do! migrations      
+         
+      do! applyMigrations      
       }
     
-    member __.GrantEvalPermission = grantEvalPermission
     member __.GetCurrentVersion = getCurrentVersion
     member __.ApplyMigrations rootPath migrations bootstrapBehaviour = applyMigrations rootPath migrations bootstrapBehaviour

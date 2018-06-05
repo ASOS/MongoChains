@@ -36,25 +36,18 @@ module Console =
     let targetVersion = cliArgs.TryGetResult TargetVersion
 
     let client = MongoDB.Driver.MongoClient(mongoConnectionString)
-    let migrator = Migrator(client)
+    let logger = { new Migrations.ILogger with member __.Log str = printf "%s" str }
+    let migrator = Migrator(client, logger)
     let bootstrapBehaviour = if cliArgs.Contains Safemode then BootstrapBehaviour.Abort else BootstrapBehaviour.RunAllMigrations
   
     let result = 
       migrator.ApplyMigrations migrationsPath tokens bootstrapBehaviour targetVersion
       |> Async.ofAsyncResult
       |> Async.RunSynchronously
-
-    let printError (err:MigrationError) =
-      match err with
-      | MigrationError.CouldNotDetermineCurrentMigrationVersion -> "Could not determine the current migration version as the migration record does not exist in the admin database. Run without safemode to force migrations to run."
-      | MigrationError.CouldNotGrantEvalPermission -> "The credentials specified in the connection string do not have sufficient permission to run Eval."
-      | MigrationError.RunJavascriptError err -> sprintf "An error occured running the migration: %s" (string err)
-      | MigrationError.SetMigrationVersionError -> "An error occured trying to update the migration version record."
-      | MigrationError.TokenNotSpecified key -> sprintf "You did not specify a value for token: %s" key
     
-    let printErrors errs = errs |> Seq.map printError |> Seq.iter (printfn "%s")
+    let printErrors (errs:seq<MigrationError>) = errs |> Seq.iter (fun err -> printfn "%s" err.FriendlyError)
 
     match result with
-    | Result.Ok (_,[]) -> printfn "Completed successfully"; 0
-    | Result.Ok (_,warnings) -> printfn "Completed successfully with warnings:"; printErrors warnings; 0
-    | Result.Bad errors -> printfn "Failed with errors:"; printErrors errors; -1
+    | Result.Ok (_,[]) -> printfn "\nCompleted successfully"; 0
+    | Result.Ok (_,warnings) -> printfn "\nCompleted successfully with warnings:"; printErrors warnings; 0
+    | Result.Bad errors -> printfn "\nFailed with errors:"; printErrors errors; -1

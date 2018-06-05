@@ -38,7 +38,7 @@ Migrations files are just javascript mongo scripts. You should put the migration
     └───3
             up.js
 
-If you have .NET Core 2.1 installed, you can install mongochains as a global tool:
+If you have .NET Core 2.1 installed, you can install MongoChains as a global tool:
 
     dotnet tool install --global MongoChains.Console
 

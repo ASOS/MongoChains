@@ -46,8 +46,9 @@ module Migrations =
 
   let replaceTokens (tokens:seq<string * string>) (javascript:string) : Result<string, MigrationError>=
     
-    let regex = System.Text.RegularExpressions.Regex("{#(.*)}")
+    let regex = System.Text.RegularExpressions.Regex("{#([a-zA-Z0-9]*)}")
     let tokensMap = Map.ofSeq tokens
+
     let tokensInJs = [| for m in regex.Matches(javascript) -> m.Groups.[1].Value |]
     
     trial {
@@ -179,4 +180,4 @@ module Migrations =
       }
     
     member __.GetCurrentVersion = getCurrentVersion
-    member __.ApplyMigrations rootPath migrations bootstrapBehaviour = applyMigrations rootPath migrations bootstrapBehaviour
+    member __.ApplyMigrations rootPath tokens bootstrapBehaviour targetVersion = applyMigrations rootPath tokens bootstrapBehaviour targetVersion
